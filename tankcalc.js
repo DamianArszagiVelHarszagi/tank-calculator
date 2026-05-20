@@ -15,8 +15,11 @@ let stops = [];
 let routeLayer = null;
 let tankEmptyMarker = null;
 let recommendedStopMarkers = [];
+let safetyMarkers = [];
 let geocodeQueue = Promise.resolve();
 let lastResult = null;
+let lastRouteGeometry = null;
+let lastRouteLegs = [];
 let geocodeSeq = 0;
 
 function navigate(page) {
@@ -174,12 +177,75 @@ function clearTankMarkers() {
     recommendedStopMarkers = [];
 }
 
+function clearSafetyMarkers() {
+    safetyMarkers.forEach(m => map.removeLayer(m));
+    safetyMarkers = [];
+}
+
 function clearRoute() {
     if (routeLayer) {
         map.removeLayer(routeLayer);
         routeLayer = null;
     }
     clearTankMarkers();
+    clearSafetyMarkers();
+    lastRouteGeometry = null;
+    lastRouteLegs = [];
+}
+
+function makeSafetyIcon(risk) {
+    const colors = { green: '#27ae60', yellow: '#e67e22', red: '#e74c3c' };
+    const bg = colors[risk] || colors.yellow;
+    return L.divIcon({
+        html: `<div style="background:${bg};color:white;border-radius:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5)">!</div>`,
+        iconSize: [20, 20], iconAnchor: [10, 10], className: ''
+    });
+}
+
+function buildSafetyPopup(info) {
+    const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
+    let html = `<strong>${info.name}</strong><br>${RISK[info.risk] || '🟡'}<br><br>`;
+    if (info.danger)    html += `<b>Gevaar:</b> ${info.danger}<br>`;
+    if (info.border)    html += `<b>Grens:</b> ${info.border}<br>`;
+    if (info.traffic)   html += `<b>Verkeer:</b> ${info.traffic}<br>`;
+    if (info.practical) html += `<b>Praktisch:</b> ${info.practical}`;
+    return html;
+}
+
+async function placeSafetyMarkersOnMap() {
+    clearSafetyMarkers();
+    if (!lastResult || !lastRouteGeometry || !lastRouteLegs.length) return;
+
+    const data = await loadSafetyData();
+    const routeStops = lastResult.stops;
+
+    const stopKm = [0];
+    let cum = 0;
+    for (const leg of lastRouteLegs) {
+        cum += leg.distance / 1000;
+        stopKm.push(cum);
+    }
+
+    const seen = new Set();
+    for (let i = 0; i < routeStops.length; i++) {
+        const cc = routeStops[i].countryCode;
+        if (!cc || seen.has(cc) || cc === 'DEFAULT' || cc === 'XX') continue;
+        seen.add(cc);
+
+        const info = data[cc] || data['DEFAULT'];
+        if (!info) continue;
+
+        // Place marker midway through this stop's outgoing segment, or at the stop itself if it's the last
+        const markerKm = i < routeStops.length - 1
+            ? (stopKm[i] + stopKm[i + 1]) / 2
+            : stopKm[i];
+
+        const point = getPointAtDistanceKm(lastRouteGeometry, markerKm);
+        const marker = L.marker([point.lat, point.lng], { icon: makeSafetyIcon(info.risk) })
+            .addTo(map)
+            .bindPopup(buildSafetyPopup(info), { maxWidth: 260 });
+        safetyMarkers.push(marker);
+    }
 }
 
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -464,6 +530,8 @@ async function analyzeSafety() {
     html += `<p style="margin-top:8px"><strong>Eindoordeel: ${RISK[overallRisk]}</strong></p>`;
     html += '</div>';
     safetyEl.innerHTML = html;
+
+    placeSafetyMarkersOnMap();
 }
 
 async function calculate() {
@@ -496,6 +564,8 @@ async function calculate() {
         }
 
         const route = data.routes[0];
+        lastRouteGeometry = route.geometry;
+        lastRouteLegs = route.legs;
         routeLayer = L.geoJSON(route.geometry, {
             style: { color: "blue", weight: 3 },
         }).addTo(map);
