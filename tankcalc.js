@@ -18,6 +18,7 @@ let recommendedStopMarkers = [];
 let safetyMarkers = [];
 let geocodeQueue = Promise.resolve();
 let lastResult = null;
+let lastFuelPlan = [];
 let lastRouteGeometry = null;
 let lastRouteLegs = [];
 let geocodeSeq = 0;
@@ -297,6 +298,7 @@ function planFuelStops(geometry, stops, routeLegs, tankCapacity, consumption, fu
                 candidates.push({
                     type: 'waypoint',
                     km: stopKm[i],
+                    countryCode: stops[i].countryCode,
                     price: getPricePerLiter(stops[i].countryCode, fuelType),
                     name: stops[i].name,
                     lat: stops[i].lat,
@@ -382,6 +384,7 @@ async function geocodeVirtualStops(fuelPlan, fuelType, tankCapacity, seq, ctx) {
 
         const info = await getLocationInfo(stop.lat, stop.lng);
         if (info.countryCode !== 'DEFAULT' && info.countryCode !== 'XX') {
+            stop.countryCode = info.countryCode;
             stop.price = getPricePerLiter(info.countryCode, fuelType);
             stop.name = info.display || info.name;
             stop.fillUpCost = tankCapacity * stop.price;
@@ -433,8 +436,6 @@ function onMapClick(e) {
 
     renderStops();
     updateCalcButton();
-    clearResults();
-    clearRoute();
 
     geocodeQueue = geocodeQueue.then(async () => {
         await new Promise(resolve => setTimeout(resolve, 350));
@@ -489,51 +490,45 @@ async function analyzeSafety() {
     clearSafetyMarkers();
 
     const data = await loadSafetyData();
-    const totalKm = lastRouteLegs.reduce((s, l) => s + l.distance / 1000, 0);
-    const interval = 50;
-    const steps = Math.ceil(totalKm / interval);
-    const seq = geocodeSeq;
 
-    safetyEl.innerHTML = `<p><span class="spinner">⟳</span> Landen detecteren (0/${steps + 1})...</p>`;
+    // Build ordered list of known points along the route (stops + fuel plan)
+    const stopKm = [0];
+    let cum = 0;
+    for (const leg of lastRouteLegs) { cum += leg.distance / 1000; stopKm.push(cum); }
 
-    const detected = []; // [{cc, lat, lng}]
+    const points = [];
+    for (let i = 0; i < lastResult.stops.length; i++) {
+        const s = lastResult.stops[i];
+        if (s.countryCode && s.countryCode !== 'DEFAULT' && s.countryCode !== 'XX')
+            points.push({ km: stopKm[i], cc: s.countryCode, lat: s.lat, lng: s.lng });
+    }
+    for (const fp of lastFuelPlan) {
+        const cc = fp.countryCode;
+        if (cc && cc !== 'DEFAULT' && cc !== 'XX')
+            points.push({ km: fp.km, cc, lat: fp.lat, lng: fp.lng });
+    }
+    points.sort((a, b) => a.km - b.km);
+
     const seen = new Set();
-    let prevCc = null;
-
-    for (let i = 0; i <= steps; i++) {
-        if (geocodeSeq !== seq) return;
-        if (i > 0) await new Promise(r => setTimeout(r, 1100));
-        if (geocodeSeq !== seq) return;
-
-        const km = Math.min(i * interval, totalKm);
-        const point = getPointAtDistanceKm(lastRouteGeometry, km);
-        const info = await getLocationInfo(point.lat, point.lng);
-        const cc = info.countryCode;
-
-        safetyEl.innerHTML = `<p><span class="spinner">⟳</span> Landen detecteren (${i + 1}/${steps + 1})...</p>`;
-
-        if (cc && cc !== 'DEFAULT' && cc !== 'XX' && cc !== prevCc) {
-            if (!seen.has(cc)) {
-                seen.add(cc);
-                detected.push({ cc, lat: point.lat, lng: point.lng });
-            }
-            prevCc = cc;
-        }
+    const detected = [];
+    for (const p of points) {
+        if (!seen.has(p.cc)) { seen.add(p.cc); detected.push(p); }
     }
 
-    if (geocodeSeq !== seq) return;
+    if (!detected.length) {
+        safetyEl.innerHTML = '<p>Geen landen gevonden.</p>';
+        return;
+    }
 
-    // Place map markers at the entry point of each detected country
     for (const { cc, lat, lng } of detected) {
-        const countryInfo = data[cc] || data['DEFAULT'];
-        if (!countryInfo) continue;
-        const marker = L.marker([lat, lng], { icon: makeSafetyIcon(countryInfo.risk) })
+        const info = data[cc] || data['DEFAULT'];
+        if (!info) continue;
+        const marker = L.marker([lat, lng], { icon: makeSafetyIcon(info.risk) })
             .addTo(map)
-            .bindPopup(buildSafetyPopup(countryInfo), { maxWidth: 260 });
+            .bindPopup(buildSafetyPopup(info), { maxWidth: 260 });
         safetyMarkers.push(marker);
     }
 
-    // Sidebar full analysis
     const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
     const riskOrder = { green: 0, yellow: 1, red: 2 };
     let overallRisk = 'green';
@@ -542,15 +537,14 @@ async function analyzeSafety() {
     html += `<strong>Veiligheidsanalyse</strong> <small style="color:#888">(${detected.length} landen)</small><br><br>`;
 
     for (const { cc } of detected) {
-        const countryInfo = data[cc] || data['DEFAULT'];
-        if (!countryInfo) continue;
-        if (riskOrder[countryInfo.risk] > riskOrder[overallRisk]) overallRisk = countryInfo.risk;
-
-        html += `<p style="margin:8px 0"><strong>${RISK[countryInfo.risk] || '🟡'} — ${countryInfo.name || cc}</strong>`;
-        if (countryInfo.danger)    html += `<br><small><em>Gevaar:</em> ${countryInfo.danger}</small>`;
-        if (countryInfo.border)    html += `<br><small><em>Grens:</em> ${countryInfo.border}</small>`;
-        if (countryInfo.traffic)   html += `<br><small><em>Verkeer:</em> ${countryInfo.traffic}</small>`;
-        if (countryInfo.practical) html += `<br><small><em>Praktisch:</em> ${countryInfo.practical}</small>`;
+        const info = data[cc] || data['DEFAULT'];
+        if (!info) continue;
+        if (riskOrder[info.risk] > riskOrder[overallRisk]) overallRisk = info.risk;
+        html += `<p style="margin:8px 0"><strong>${RISK[info.risk] || '🟡'} — ${info.name || cc}</strong>`;
+        if (info.danger)    html += `<br><small><em>Gevaar:</em> ${info.danger}</small>`;
+        if (info.border)    html += `<br><small><em>Grens:</em> ${info.border}</small>`;
+        if (info.traffic)   html += `<br><small><em>Verkeer:</em> ${info.traffic}</small>`;
+        if (info.practical) html += `<br><small><em>Praktisch:</em> ${info.practical}</small>`;
         html += '</p><hr style="margin:4px 0;border:none;border-top:1px solid #ddd">';
     }
 
@@ -634,6 +628,7 @@ async function calculate() {
         }
 
         const fuelPlan = planFuelStops(route.geometry, stops, route.legs, tankCapacity, consumption, fuelType);
+        lastFuelPlan = fuelPlan;
 
         // Red ⛽ marker at the no-stop max range point
         if (tankEmptyInfo) {
