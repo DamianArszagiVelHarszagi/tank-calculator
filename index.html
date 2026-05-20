@@ -4,17 +4,26 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>TankCalc — Fuel Cost Calculator / Brandstofkosten berekenen</title>
-		<meta name="description" content="Calculate fuel costs for any route across Europe and beyond. Plan your trip with real fuel prices per country, tank range, refuel stops and cost per person. / Bereken brandstofkosten per route met prijzen per land, tankplan en kostenverdeling." />
-		<meta name="keywords" content="fuel cost calculator, fuel price Europe, road trip cost, petrol calculator, diesel price, tank range, route fuel planner, brandstof berekenen, tankkosten, benzineprijs Europa, routeplanner brandstof" />
+		<meta
+			name="description"
+			content="Calculate fuel costs for any route across Europe and beyond. Plan your trip with real fuel prices per country, tank range, refuel stops and cost per person. / Bereken brandstofkosten per route met prijzen per land, tankplan en kostenverdeling."
+		/>
+		<meta
+			name="keywords"
+			content="fuel cost calculator, fuel price Europe, road trip cost, petrol calculator, diesel price, tank range, route fuel planner, brandstof berekenen, tankkosten, benzineprijs Europa, routeplanner brandstof"
+		/>
 		<meta name="author" content="TankCalc" />
 		<meta property="og:title" content="TankCalc — Fuel Cost Calculator" />
-		<meta property="og:description" content="Calculate fuel costs per country for any road trip across Europe and beyond. Real prices for petrol and diesel." />
+		<meta
+			property="og:description"
+			content="Calculate fuel costs per country for any road trip across Europe and beyond. Real prices for petrol and diesel."
+		/>
 		<meta property="og:type" content="website" />
 		<link
 			rel="stylesheet"
 			href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
 		/>
-		<link rel="stylesheet" href="style.css" />
+		<link rel="stylesheet" href="css/style.css" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 	</head>
 	<body>
@@ -30,11 +39,15 @@
 				<h2>TankCalc</h2>
 
 				<div>
-					<strong>Stop toevoegen:</strong><br>
-					<input type="text" id="address-input" placeholder="Stad of adres..."
-						onkeydown="if(event.key==='Enter') searchAddress()" />
+					<strong>Stop toevoegen:</strong><br />
+					<input
+						type="text"
+						id="address-input"
+						placeholder="Stad of adres..."
+						onkeydown="if (event.key === 'Enter') searchAddress();"
+					/>
 					<button id="search-btn" onclick="searchAddress()">Zoek</button>
-					<span id="search-error" style="color:red;font-size:0.9em"></span>
+					<span id="search-error"></span>
 				</div>
 
 				<div>
@@ -105,15 +118,15 @@
 					</label>
 				</div>
 
-<button id="calc-btn" disabled onclick="calculate()">
+				<button id="calc-btn" disabled onclick="calculate()">
 					Bereken kosten
 				</button>
 
-				<button id="save-btn" onclick="saveRoute()" style="display:none">
+				<button id="save-btn" onclick="saveRoute()" style="display: none">
 					Sla route op
 				</button>
 
-				<button id="safety-btn" onclick="analyzeSafety()" style="display:none">
+				<button id="safety-btn" onclick="analyzeSafety()" style="display: none">
 					Veiligheidsanalyse
 				</button>
 
@@ -122,7 +135,7 @@
 			</div>
 		</div>
 
-		<div id="saved-page" style="display:none">
+		<div id="saved-page" style="display: none">
 			<div id="saved-header">
 				<button onclick="navigate('calculator')">← Terug</button>
 				<h2>Opgeslagen routes</h2>
@@ -130,6 +143,13 @@
 			<ul id="saved-list"></ul>
 		</div>
 
-		<script src="tankcalc.js"></script>
+		<script src="js/state.js"></script>
+		<script src="js/geo.js"></script>
+		<script src="js/map.js"></script>
+		<script src="js/stops.js"></script>
+		<script src="js/fuel.js"></script>
+		<script src="js/safety.js"></script>
+		<script src="js/saved.js"></script>
+		<script src="js/calculate.js"></script>
 	</body>
 </html>
