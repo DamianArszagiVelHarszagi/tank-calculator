@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="nl">
+	<head>
+		<meta charset="UTF-8" />
+		<title>TankCalc</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+		/>
+		<link rel="stylesheet" href="style.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+	</head>
+	<body>
+		<div id="layout">
+			<div id="map"></div>
+
+			<nav id="vertical-nav">
+				<button onclick="navigate('calculator')">Rekenmachine</button>
+				<button onclick="navigate('saved')">Opgeslagen routes</button>
+			</nav>
+
+			<div id="sidebar">
+				<h2>TankCalc</h2>
+
+				<div>
+					<strong>Stop toevoegen:</strong><br>
+					<input type="text" id="address-input" placeholder="Stad of adres..."
+						onkeydown="if(event.key==='Enter') searchAddress()" />
+					<button id="search-btn" onclick="searchAddress()">Zoek</button>
+					<span id="search-error" style="color:red;font-size:0.9em"></span>
+				</div>
+
+				<div>
+					<strong>Stops:</strong>
+					<ul id="stops-list">
+						<li><em>Nog geen stops</em></li>
+					</ul>
+					<button onclick="clearAll()">Wis alles</button>
+				</div>
+
+				<div>
+					<label
+						><strong>Brandstof:</strong><br />
+						<select id="fuel">
+							<option value="95">Benzine 95</option>
+							<option value="98">Benzine 98</option>
+							<option value="diesel">Diesel</option>
+						</select>
+					</label>
+				</div>
+
+				<div>
+					<label
+						><strong>Verbruik (L/100km):</strong><br />
+						<input
+							type="number"
+							id="consumption"
+							value="7.0"
+							step="0.1"
+							min="1"
+							max="40"
+						/>
+					</label>
+				</div>
+
+				<div>
+					<label
+						><strong>Tankinhoud (L):</strong><br />
+						<input
+							type="number"
+							id="tank-capacity"
+							value="50"
+							step="1"
+							min="10"
+							max="200"
+						/>
+					</label>
+				</div>
+
+				<div>
+					<label
+						><strong>Aantal personen:</strong><br />
+						<input
+							type="number"
+							id="persons"
+							value="1"
+							step="1"
+							min="1"
+							max="20"
+						/>
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="checkbox" id="return-trip" />
+						<strong>Heen en terug</strong>
+					</label>
+				</div>
+
+				<button id="calc-btn" disabled onclick="calculate()">
+					Bereken kosten
+				</button>
+
+				<button id="save-btn" onclick="saveRoute()" style="display:none">
+					Sla route op
+				</button>
+
+				<div id="results"></div>
+			</div>
+		</div>
+
+		<div id="saved-page" style="display:none">
+			<div id="saved-header">
+				<button onclick="navigate('calculator')">← Terug</button>
+				<h2>Opgeslagen routes</h2>
+			</div>
+			<ul id="saved-list"></ul>
+		</div>
+
+		<script src="tankcalc.js"></script>
+	</body>
+</html>
