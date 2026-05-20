@@ -74,6 +74,7 @@ async function calculate() {
 
         const fuelPlan = planFuelStops(route.geometry, stops, route.legs, tankCapacity, consumption, fuelType);
         lastFuelPlan = fuelPlan;
+        document.getElementById('plan-overlay').innerHTML = buildPlanHtml(fuelPlan, tankCapacity);
 
         if (tankEmptyInfo) {
             const emptyPoint = getPointAtDistanceKm(route.geometry, tankEmptyInfo.kmTotal);
@@ -105,8 +106,6 @@ async function calculate() {
                 ✓ Tank houdt het vol voor de hele route (${remainingFuel.toFixed(1)}L over)
                </p>`;
 
-        const planHtml = `<div id="plan-section">${buildPlanHtml(fuelPlan, tankCapacity)}</div>`;
-
         const displayKm = isReturn ? totalKm * 2 : totalKm;
         const displayLiters = isReturn ? totalLiters * 2 : totalLiters;
         const displayCost = isReturn ? totalCost * 2 : totalCost;
@@ -134,7 +133,6 @@ async function calculate() {
         resultsEl.innerHTML =
             `<p id="results-summary"><strong>TOTAAL: €${displayCost.toFixed(2)}</strong>${returnLabel}${perPersonLine}<br>${displayKm.toFixed(0)} km · ${displayLiters.toFixed(1)} L</p>` +
             tankHtml +
-            planHtml +
             legsHtml +
             "<p><small>Prijzen zijn schattingen (gem. 2026).</small></p>";
 

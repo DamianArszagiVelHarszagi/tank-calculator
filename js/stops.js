@@ -100,7 +100,6 @@ function clearAll() {
     lastResult = null;
     document.getElementById('save-btn').style.display = 'none';
     document.getElementById('safety-btn').style.display = 'none';
-    document.getElementById('safety-results').innerHTML = '';
     clearRoute();
     renderStops();
     updateCalcButton();

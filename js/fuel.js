@@ -118,7 +118,7 @@ async function geocodeVirtualStops(fuelPlan, fuelType, tankCapacity, seq, ctx) {
             }
         }
 
-        const planEl = document.getElementById('plan-section');
+        const planEl = document.getElementById('plan-overlay');
         if (planEl) planEl.innerHTML = buildPlanHtml(fuelPlan, tankCapacity);
     }
 

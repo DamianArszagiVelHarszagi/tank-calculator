@@ -41,7 +41,7 @@ async function analyzeSafety() {
             knownPoints.set(fp.km, { cc: fp.countryCode, lat: fp.lat, lng: fp.lng });
     }
 
-    function renderAnalysis(scanning) {
+    function renderAnalysis(scanning, done = 0, total = 0) {
         const sorted = [...knownPoints.entries()].sort((a, b) => a[0] - b[0]);
         const seen = new Set();
         const detected = [];
@@ -65,7 +65,7 @@ async function analyzeSafety() {
 
         let html = '<div style="background:#f8f9fa;padding:10px;border-radius:4px;border-left:3px solid #e74c3c;margin-top:10px">';
         html += `<strong>Veiligheidsanalyse</strong>`;
-        if (scanning) html += ` <span class="spinner" style="font-size:0.85em">⟳</span>`;
+        if (scanning) html += ` <span class="spinner" style="font-size:0.85em">⟳</span> <small style="color:#888">${done}/${total}</small>`;
         html += '<br><br>';
 
         for (const { cc } of detected) {
@@ -85,22 +85,26 @@ async function analyzeSafety() {
         safetyEl.innerHTML = html;
     }
 
-    renderAnalysis(true);
+    const interval = 120;
+    const totalSamples = Math.max(1, Math.ceil((totalKm - interval) / interval));
+    let completedSamples = 0;
 
-    const interval = 80;
+    renderAnalysis(true, 0, totalSamples);
+
     for (let km = interval; km < totalKm; km += interval) {
         if (geocodeSeq !== seq) return;
-        await new Promise(r => setTimeout(r, 1100));
+        await new Promise(r => setTimeout(r, 1000));
         if (geocodeSeq !== seq) return;
 
         const point = getPointAtDistanceKm(lastRouteGeometry, km);
         const info = await getLocationInfo(point.lat, point.lng);
         const cc = info.countryCode;
+        completedSamples++;
 
         if (cc && cc !== 'DEFAULT' && cc !== 'XX') {
             knownPoints.set(km, { cc, lat: point.lat, lng: point.lng });
-            renderAnalysis(km + interval < totalKm);
         }
+        renderAnalysis(km + interval < totalKm, completedSamples, totalSamples);
     }
 
     if (geocodeSeq === seq) renderAnalysis(false);

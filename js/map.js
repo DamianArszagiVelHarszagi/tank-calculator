@@ -22,6 +22,8 @@ function makeSafetyIcon(risk) {
 
 function clearResults() {
     document.getElementById("results").innerHTML = "";
+    document.getElementById("plan-overlay").innerHTML = "";
+    document.getElementById("safety-results").innerHTML = "";
 }
 
 function clearTankMarkers() {

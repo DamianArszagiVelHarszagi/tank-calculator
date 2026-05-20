@@ -30,10 +30,16 @@
 		<div id="layout">
 			<div id="map"></div>
 
-			<nav id="vertical-nav">
-				<button onclick="navigate('calculator')">Rekenmachine</button>
-				<button onclick="navigate('saved')">Opgeslagen routes</button>
-			</nav>
+			<div id="left-col">
+				<nav id="vertical-nav">
+					<button onclick="navigate('calculator')">Rekenmachine</button>
+					<button onclick="navigate('saved')">Opgeslagen routes</button>
+				</nav>
+				<div id="left-panel">
+					<div id="plan-overlay"></div>
+					<div id="safety-results"></div>
+				</div>
+			</div>
 
 			<div id="sidebar">
 				<h2>TankCalc</h2>
@@ -131,7 +137,6 @@
 				</button>
 
 				<div id="results"></div>
-				<div id="safety-results"></div>
 			</div>
 		</div>
 
