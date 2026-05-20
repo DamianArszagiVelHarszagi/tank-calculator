@@ -119,6 +119,7 @@ function renderSavedRoutes() {
     `).join('');
 }
 
+
 const map = L.map("map", { center: [50.85, 4.35], zoom: 5 });
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap",
@@ -396,10 +397,73 @@ function clearAll() {
     stops = [];
     lastResult = null;
     document.getElementById('save-btn').style.display = 'none';
+    document.getElementById('safety-btn').style.display = 'none';
+    document.getElementById('safety-results').innerHTML = '';
     clearRoute();
     renderStops();
     updateCalcButton();
     clearResults();
+}
+
+let safetyData = null;
+
+async function loadSafetyData() {
+    if (safetyData) return safetyData;
+    try {
+        const r = await fetch('safety.json');
+        safetyData = await r.json();
+    } catch {
+        safetyData = {};
+    }
+    return safetyData;
+}
+
+async function analyzeSafety() {
+    if (!lastResult) return;
+
+    const safetyEl = document.getElementById('safety-results');
+    safetyEl.innerHTML = '<p><span class="spinner">⟳</span> Veiligheidsanalyse laden...</p>';
+
+    const data = await loadSafetyData();
+
+    const seen = new Set();
+    const countries = [];
+    for (const s of lastResult.stops) {
+        const cc = s.countryCode;
+        if (cc && !seen.has(cc) && cc !== 'DEFAULT' && cc !== 'XX') {
+            seen.add(cc);
+            countries.push(cc);
+        }
+    }
+
+    if (!countries.length) {
+        safetyEl.innerHTML = '<p>Geen landen gevonden in de route.</p>';
+        return;
+    }
+
+    const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
+    const riskOrder = { green: 0, yellow: 1, red: 2 };
+    let overallRisk = 'green';
+
+    let html = '<div style="background:#f8f9fa;padding:10px;border-radius:4px;border-left:3px solid #e74c3c;margin-top:10px">';
+    html += '<strong>Veiligheidsanalyse</strong><br><br>';
+
+    for (const cc of countries) {
+        const info = data[cc] || data['DEFAULT'];
+        if (!info) continue;
+        if (riskOrder[info.risk] > riskOrder[overallRisk]) overallRisk = info.risk;
+
+        html += `<p style="margin:8px 0"><strong>${RISK[info.risk] || '🟡'} — ${info.name || cc}</strong>`;
+        if (info.danger)    html += `<br><small><em>Gevaar:</em> ${info.danger}</small>`;
+        if (info.border)    html += `<br><small><em>Grens:</em> ${info.border}</small>`;
+        if (info.traffic)   html += `<br><small><em>Verkeer:</em> ${info.traffic}</small>`;
+        if (info.practical) html += `<br><small><em>Praktisch:</em> ${info.practical}</small>`;
+        html += '</p><hr style="margin:4px 0;border:none;border-top:1px solid #ddd">';
+    }
+
+    html += `<p style="margin-top:8px"><strong>Eindoordeel: ${RISK[overallRisk]}</strong></p>`;
+    html += '</div>';
+    safetyEl.innerHTML = html;
 }
 
 async function calculate() {
@@ -527,6 +591,8 @@ async function calculate() {
             totalLiters: parseFloat(displayLiters.toFixed(1)),
         };
         document.getElementById('save-btn').style.display = '';
+        document.getElementById('safety-btn').style.display = '';
+        document.getElementById('safety-results').innerHTML = '';
 
         const returnLabel = isReturn ? ' <small>(heen en terug)</small>' : '';
         const perPersonLine = persons > 1
