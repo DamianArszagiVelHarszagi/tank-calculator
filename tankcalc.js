@@ -204,11 +204,9 @@ function makeSafetyIcon(risk) {
 
 function buildSafetyPopup(info) {
     const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
-    let html = `<strong>${info.name}</strong><br>${RISK[info.risk] || '🟡'}<br><br>`;
-    if (info.danger)    html += `<b>Gevaar:</b> ${info.danger}<br>`;
-    if (info.border)    html += `<b>Grens:</b> ${info.border}<br>`;
-    if (info.traffic)   html += `<b>Verkeer:</b> ${info.traffic}<br>`;
-    if (info.practical) html += `<b>Praktisch:</b> ${info.practical}`;
+    let html = `<strong>${info.name}</strong> — ${RISK[info.risk] || '🟡'}<br>`;
+    if (info.border) html += `<br>${info.border}`;
+    if (info.danger) html += `<br><small style="color:#c0392b">${info.danger}</small>`;
     return html;
 }
 
@@ -485,53 +483,80 @@ async function loadSafetyData() {
 }
 
 async function analyzeSafety() {
-    if (!lastResult) return;
+    if (!lastResult || !lastRouteGeometry) return;
 
     const safetyEl = document.getElementById('safety-results');
-    safetyEl.innerHTML = '<p><span class="spinner">⟳</span> Veiligheidsanalyse laden...</p>';
+    clearSafetyMarkers();
 
     const data = await loadSafetyData();
+    const totalKm = lastRouteLegs.reduce((s, l) => s + l.distance / 1000, 0);
+    const interval = 50;
+    const steps = Math.ceil(totalKm / interval);
+    const seq = geocodeSeq;
 
+    safetyEl.innerHTML = `<p><span class="spinner">⟳</span> Landen detecteren (0/${steps + 1})...</p>`;
+
+    const detected = []; // [{cc, lat, lng}]
     const seen = new Set();
-    const countries = [];
-    for (const s of lastResult.stops) {
-        const cc = s.countryCode;
-        if (cc && !seen.has(cc) && cc !== 'DEFAULT' && cc !== 'XX') {
-            seen.add(cc);
-            countries.push(cc);
+    let prevCc = null;
+
+    for (let i = 0; i <= steps; i++) {
+        if (geocodeSeq !== seq) return;
+        if (i > 0) await new Promise(r => setTimeout(r, 1100));
+        if (geocodeSeq !== seq) return;
+
+        const km = Math.min(i * interval, totalKm);
+        const point = getPointAtDistanceKm(lastRouteGeometry, km);
+        const info = await getLocationInfo(point.lat, point.lng);
+        const cc = info.countryCode;
+
+        safetyEl.innerHTML = `<p><span class="spinner">⟳</span> Landen detecteren (${i + 1}/${steps + 1})...</p>`;
+
+        if (cc && cc !== 'DEFAULT' && cc !== 'XX' && cc !== prevCc) {
+            if (!seen.has(cc)) {
+                seen.add(cc);
+                detected.push({ cc, lat: point.lat, lng: point.lng });
+            }
+            prevCc = cc;
         }
     }
 
-    if (!countries.length) {
-        safetyEl.innerHTML = '<p>Geen landen gevonden in de route.</p>';
-        return;
+    if (geocodeSeq !== seq) return;
+
+    // Place map markers at the entry point of each detected country
+    for (const { cc, lat, lng } of detected) {
+        const countryInfo = data[cc] || data['DEFAULT'];
+        if (!countryInfo) continue;
+        const marker = L.marker([lat, lng], { icon: makeSafetyIcon(countryInfo.risk) })
+            .addTo(map)
+            .bindPopup(buildSafetyPopup(countryInfo), { maxWidth: 260 });
+        safetyMarkers.push(marker);
     }
 
+    // Sidebar full analysis
     const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
     const riskOrder = { green: 0, yellow: 1, red: 2 };
     let overallRisk = 'green';
 
     let html = '<div style="background:#f8f9fa;padding:10px;border-radius:4px;border-left:3px solid #e74c3c;margin-top:10px">';
-    html += '<strong>Veiligheidsanalyse</strong><br><br>';
+    html += `<strong>Veiligheidsanalyse</strong> <small style="color:#888">(${detected.length} landen)</small><br><br>`;
 
-    for (const cc of countries) {
-        const info = data[cc] || data['DEFAULT'];
-        if (!info) continue;
-        if (riskOrder[info.risk] > riskOrder[overallRisk]) overallRisk = info.risk;
+    for (const { cc } of detected) {
+        const countryInfo = data[cc] || data['DEFAULT'];
+        if (!countryInfo) continue;
+        if (riskOrder[countryInfo.risk] > riskOrder[overallRisk]) overallRisk = countryInfo.risk;
 
-        html += `<p style="margin:8px 0"><strong>${RISK[info.risk] || '🟡'} — ${info.name || cc}</strong>`;
-        if (info.danger)    html += `<br><small><em>Gevaar:</em> ${info.danger}</small>`;
-        if (info.border)    html += `<br><small><em>Grens:</em> ${info.border}</small>`;
-        if (info.traffic)   html += `<br><small><em>Verkeer:</em> ${info.traffic}</small>`;
-        if (info.practical) html += `<br><small><em>Praktisch:</em> ${info.practical}</small>`;
+        html += `<p style="margin:8px 0"><strong>${RISK[countryInfo.risk] || '🟡'} — ${countryInfo.name || cc}</strong>`;
+        if (countryInfo.danger)    html += `<br><small><em>Gevaar:</em> ${countryInfo.danger}</small>`;
+        if (countryInfo.border)    html += `<br><small><em>Grens:</em> ${countryInfo.border}</small>`;
+        if (countryInfo.traffic)   html += `<br><small><em>Verkeer:</em> ${countryInfo.traffic}</small>`;
+        if (countryInfo.practical) html += `<br><small><em>Praktisch:</em> ${countryInfo.practical}</small>`;
         html += '</p><hr style="margin:4px 0;border:none;border-top:1px solid #ddd">';
     }
 
     html += `<p style="margin-top:8px"><strong>Eindoordeel: ${RISK[overallRisk]}</strong></p>`;
     html += '</div>';
     safetyEl.innerHTML = html;
-
-    placeSafetyMarkersOnMap();
 }
 
 async function calculate() {
