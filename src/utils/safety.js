@@ -8,9 +8,9 @@ export async function loadSafetyData() {
 }
 
 export const RISK_LABEL = {
-    green: '🟢 Veilig',
-    yellow: '🟡 Opletten',
-    red: '🔴 Gevaarlijk',
+    green: 'Veilig',
+    yellow: 'Opletten',
+    red: 'Gevaarlijk',
 };
 
 export const RISK_ORDER = { green: 0, yellow: 1, red: 2 };

@@ -6,7 +6,7 @@ export default function ActionButtons({ stops, hasResult, isCalculating, safetyL
             </button>
             {hasResult && (
                 <button id="save-btn" onClick={onSave}>
-                    💾 Opslaan
+                    Opslaan
                 </button>
             )}
             <button id="clear-btn" onClick={onClear}>

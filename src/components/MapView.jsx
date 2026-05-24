@@ -19,7 +19,7 @@ function makeSafetyIcon(risk) {
 
 function makeTankEmptyIcon() {
     return L.divIcon({
-        html: '<div class="marker-inner marker-tank-empty">⛽</div>',
+        html: '<div class="marker-inner marker-tank-empty">!</div>',
         iconSize: [30, 30], iconAnchor: [15, 15], className: '',
     });
 }
@@ -98,7 +98,7 @@ export default function MapView({ stops, routeGeometry, routeKey, fuelPlan, tank
                 <Marker key={`safety-${idx}`} position={[c.lat, c.lng]} icon={makeSafetyIcon(c.info?.risk)}>
                     <Popup maxWidth={260}>
                         <strong>{c.info?.name}</strong><br />
-                        {c.info?.risk === 'green' ? '🟢 Veilig' : c.info?.risk === 'red' ? '🔴 Gevaarlijk' : '🟡 Opletten'}
+                        {c.info?.risk === 'green' ? 'Veilig' : c.info?.risk === 'red' ? 'Gevaarlijk' : 'Opletten'}
                         {c.info?.border && <><br />{c.info.border}</>}
                         {c.info?.danger && <><br /><small className="danger-text">{c.info.danger}</small></>}
                     </Popup>

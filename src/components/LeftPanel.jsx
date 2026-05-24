@@ -5,10 +5,10 @@ export default function LeftPanel({ fuelPlan, safetyAnalysis, hasResult, safetyL
     return (
         <div id="left-col">
             <div id="vertical-nav">
-                <button onClick={onNavigateSaved}>💾 Opgeslagen</button>
+                <button onClick={onNavigateSaved}>Opgeslagen</button>
                 {hasResult && (
                     <button id="safety-btn" onClick={onSafety} disabled={safetyLoading}>
-                        {safetyLoading ? <><span className="spinner">⟳</span> Analyseren...</> : '🛡️ Veiligheid'}
+                        {safetyLoading ? <><span className="spinner">⟳</span> Analyseren...</> : 'Veiligheid'}
                     </button>
                 )}
             </div>

@@ -22,8 +22,8 @@ export default function Results({ results, isCalculating }) {
                 <br />{totalKm.toFixed(0)} km · {totalLiters.toFixed(1)} L
             </p>
             {tankOk
-                ? <p className="tank-ok">✓ Tank houdt het vol ({remainingFuel.toFixed(1)} L over bij aankomst)</p>
-                : <p className="tank-warning">⛽ Zonder bijvullen leeg na ±{tankEmptyKm.toFixed(0)} km<br /><small>({tankEmptyFrom} → {tankEmptyTo})</small></p>
+                ? <p className="tank-ok">Tank houdt het vol ({remainingFuel.toFixed(1)} L over bij aankomst)</p>
+                : <p className="tank-warning">Zonder bijvullen leeg na ±{tankEmptyKm.toFixed(0)} km<br /><small>({tankEmptyFrom} → {tankEmptyTo})</small></p>
             }
             <hr />
             {legs.map((leg, i) => (

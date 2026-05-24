@@ -4,7 +4,7 @@ export default function FuelPlanPanel({ fuelPlan }) {
     const pending = fuelPlan.filter(s => s.type === 'virtual' && !s.geocoded).length;
     const statusMsg = pending
         ? <><span className="spinner">⟳</span> Prijzen ophalen ({pending} resterend)...</>
-        : '✓ Alle prijzen bijgewerkt';
+        : 'Alle prijzen bijgewerkt';
 
     return (
         <div className="plan-box">

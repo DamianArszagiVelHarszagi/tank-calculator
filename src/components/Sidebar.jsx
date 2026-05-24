@@ -17,7 +17,7 @@ export default function Sidebar({
 
     return (
         <div id="sidebar">
-            <h2>🚗 TankCalc</h2>
+            <h2>TankCalc</h2>
             <StopSearch onAddStop={onAddStop} />
             <StopsList stops={stops} onMove={onMove} onRemove={onRemove} />
             <TripSettings

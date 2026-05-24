@@ -14,7 +14,7 @@ export default function SafetyPanel({ safetyAnalysis }) {
                 {countries.map((c, i) => c.info && (
                     <div key={`${c.cc}-${i}`}>
                         <p className="safety-country">
-                            <strong>{RISK_LABEL[c.info.risk] || '🟡'} — {c.info.name || c.cc}</strong>
+                            <strong>{RISK_LABEL[c.info.risk] || 'Opletten'} — {c.info.name || c.cc}</strong>
                             {c.info.border && <><br /><small><em>Grens:</em> {c.info.border}</small></>}
                             {c.info.danger && <><br /><small className="danger-text"><em>Gevaar:</em> {c.info.danger}</small></>}
                             {c.info.traffic && <><br /><small><em>Verkeer:</em> {c.info.traffic}</small></>}
