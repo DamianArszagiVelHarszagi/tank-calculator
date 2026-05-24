@@ -6,18 +6,16 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
 }).addTo(map);
 
 function makeStopIcon(num, virtual) {
-    const bg = virtual ? '#e67e22' : '#27ae60';
     return L.divIcon({
-        html: `<div style="background:${bg};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5)">${num}</div>`,
+        html: `<div class="marker-inner marker-stop ${virtual ? 'marker-stop-virtual' : 'marker-stop-user'}">${num}</div>`,
         iconSize: [28, 28], iconAnchor: [14, 14], className: ''
     });
 }
 
 function makeSafetyIcon(risk) {
-    const colors = { green: '#27ae60', yellow: '#e67e22', red: '#e74c3c' };
-    const bg = colors[risk] || colors.yellow;
+    const cls = { green: 'marker-safety-green', yellow: 'marker-safety-yellow', red: 'marker-safety-red' };
     return L.divIcon({
-        html: `<div style="background:${bg};color:white;border-radius:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5)">!</div>`,
+        html: `<div class="marker-inner marker-safety-icon ${cls[risk] || 'marker-safety-yellow'}">!</div>`,
         iconSize: [20, 20], iconAnchor: [10, 10], className: ''
     });
 }

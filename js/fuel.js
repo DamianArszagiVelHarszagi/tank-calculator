@@ -65,19 +65,20 @@ function planFuelStops(geometry, stops, routeLegs, tankCapacity, consumption, fu
 function buildPlanHtml(fuelPlan, tankCapacity) {
     if (!fuelPlan.length) return '';
     const pending = fuelPlan.filter(s => s.type === 'virtual' && !s.geocoded).length;
-    const spinner = pending ? `<span class="spinner">⟳</span> Prijzen ophalen (${pending} resterend)...` : '✓ Alle prijzen bijgewerkt';
-    const legend = `<small style="color:#888">● groen = jouw stop &nbsp; ● oranje = aanbevolen tussenstop</small>`;
+    const statusMsg = pending
+        ? `<span class="spinner">⟳</span> Prijzen ophalen (${pending} resterend)...`
+        : '✓ Alle prijzen bijgewerkt';
     const items = fuelPlan.map((s, i) => {
-        const label = s.type === 'virtual'
-            ? `<span style="color:#e67e22">${s.name}</span>${!s.geocoded ? ' <small style="color:#aaa">(schatting)</small>' : ''}`
+        const nameHtml = s.type === 'virtual'
+            ? `<span class="stop-virtual">${s.name}</span>${!s.geocoded ? ' <small class="stop-estimate">(schatting)</small>' : ''}`
             : `<strong>${s.name}</strong>`;
-        return `<p style="margin:4px 0;">${i + 1}. ${label} · km ${s.km.toFixed(0)}<br>
-            €${s.price.toFixed(3)}/L · volle tank: <strong>€${s.fillUpCost.toFixed(2)}</strong></p>`;
+        return `<p class="plan-item">${i + 1}. ${nameHtml} · km ${s.km.toFixed(0)}<br>€${s.price.toFixed(3)}/L · volle tank: <strong>€${s.fillUpCost.toFixed(2)}</strong></p>`;
     }).join('');
-    return `<div style="background:#e8f4fd;padding:8px;border-radius:4px;margin-bottom:6px;">
+    return `<div class="plan-box">
         <strong>Tankplan (${fuelPlan.length} stop${fuelPlan.length > 1 ? 's' : ''}):</strong>
-        <span style="font-size:0.85em;color:#555;margin-left:6px">${spinner}</span><br>
-        ${items}${legend}
+        <span class="plan-status">${statusMsg}</span><br>
+        ${items}
+        <small class="plan-legend">● groen = jouw stop &nbsp; ● oranje = aanbevolen tussenstop</small>
     </div>`;
 }
 
@@ -123,15 +124,17 @@ async function geocodeVirtualStops(fuelPlan, fuelType, tankCapacity, seq, ctx) {
     }
 
     if (geocodeSeq !== seq) return;
-    const newCost = calcTotalFromPlan(fuelPlan, ctx.stops, ctx.routeLegs, ctx.consumption, fuelType);
-    const displayCost = ctx.isReturn ? newCost * 2 : newCost;
+    const newOutboundCost = calcTotalFromPlan(fuelPlan, ctx.stops, ctx.routeLegs, ctx.consumption, fuelType);
+    const displayCost = newOutboundCost + (ctx.returnCost || 0);
     const summaryEl = document.getElementById('results-summary');
     if (summaryEl) {
-        const returnLabel = ctx.isReturn ? ' <small>(heen en terug)</small>' : '';
+        const breakdownLine = ctx.isReturn
+            ? `<br><small>Heen: €${newOutboundCost.toFixed(2)} · Terug: €${(ctx.returnCost || 0).toFixed(2)}</small>`
+            : '';
         const perPersonLine = ctx.persons > 1
             ? `<br>Per persoon: <strong>€${(displayCost / ctx.persons).toFixed(2)}</strong>`
             : '';
         summaryEl.innerHTML =
-            `<strong>TOTAAL: €${displayCost.toFixed(2)}</strong>${returnLabel}${perPersonLine}<br>${ctx.displayKm.toFixed(0)} km · ${ctx.displayLiters.toFixed(1)} L`;
+            `<strong>TOTAAL: €${displayCost.toFixed(2)}</strong>${breakdownLine}${perPersonLine}<br>${ctx.displayKm.toFixed(0)} km · ${ctx.displayLiters.toFixed(1)} L`;
     }
 }

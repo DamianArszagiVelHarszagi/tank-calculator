@@ -13,12 +13,15 @@ function buildSafetyPopup(info) {
     const RISK = { green: '🟢 Veilig', yellow: '🟡 Opletten', red: '🔴 Gevaarlijk' };
     let html = `<strong>${info.name}</strong> — ${RISK[info.risk] || '🟡'}<br>`;
     if (info.border) html += `<br>${info.border}`;
-    if (info.danger) html += `<br><small style="color:#c0392b">${info.danger}</small>`;
+    if (info.danger) html += `<br><small class="danger-text">${info.danger}</small>`;
     return html;
 }
 
 async function analyzeSafety() {
     if (!lastResult || !lastRouteGeometry) return;
+
+    const btn = document.getElementById('safety-btn');
+    btn.disabled = true;
 
     const safetyEl = document.getElementById('safety-results');
     clearSafetyMarkers();
@@ -63,24 +66,24 @@ async function analyzeSafety() {
         const riskOrder = { green: 0, yellow: 1, red: 2 };
         let overallRisk = 'green';
 
-        let html = '<div style="background:#f8f9fa;padding:10px;border-radius:4px;border-left:3px solid #e74c3c;margin-top:10px">';
+        let html = '<div class="safety-panel">';
         html += `<strong>Veiligheidsanalyse</strong>`;
-        if (scanning) html += ` <span class="spinner" style="font-size:0.85em">⟳</span> <small style="color:#888">${done}/${total}</small>`;
+        if (scanning) html += ` <span class="spinner">⟳</span> <small style="color:#888">${done}/${total}</small>`;
         html += '<br><br>';
 
         for (const { cc } of detected) {
             const info = data[cc] || data['DEFAULT'];
             if (!info) continue;
             if (riskOrder[info.risk] > riskOrder[overallRisk]) overallRisk = info.risk;
-            html += `<p style="margin:8px 0"><strong>${RISK[info.risk] || '🟡'} — ${info.name || cc}</strong>`;
+            html += `<p class="safety-country"><strong>${RISK[info.risk] || '🟡'} — ${info.name || cc}</strong>`;
             if (info.border)    html += `<br><small><em>Grens:</em> ${info.border}</small>`;
-            if (info.danger)    html += `<br><small><em>Gevaar:</em> ${info.danger}</small>`;
+            if (info.danger)    html += `<br><small class="danger-text"><em>Gevaar:</em> ${info.danger}</small>`;
             if (info.traffic)   html += `<br><small><em>Verkeer:</em> ${info.traffic}</small>`;
             if (info.practical) html += `<br><small><em>Praktisch:</em> ${info.practical}</small>`;
-            html += '</p><hr style="margin:4px 0;border:none;border-top:1px solid #ddd">';
+            html += '</p><hr class="safety-divider">';
         }
 
-        html += `<p style="margin-top:8px"><strong>Eindoordeel: ${RISK[overallRisk]}</strong></p>`;
+        html += `<p class="safety-verdict"><strong>Eindoordeel: ${RISK[overallRisk]}</strong></p>`;
         html += '</div>';
         safetyEl.innerHTML = html;
     }
@@ -92,9 +95,9 @@ async function analyzeSafety() {
     renderAnalysis(true, 0, totalSamples);
 
     for (let km = interval; km < totalKm; km += interval) {
-        if (geocodeSeq !== seq) return;
+        if (geocodeSeq !== seq) { btn.disabled = false; return; }
         await new Promise(r => setTimeout(r, 1000));
-        if (geocodeSeq !== seq) return;
+        if (geocodeSeq !== seq) { btn.disabled = false; return; }
 
         const point = getPointAtDistanceKm(lastRouteGeometry, km);
         const info = await getLocationInfo(point.lat, point.lng);
@@ -108,4 +111,5 @@ async function analyzeSafety() {
     }
 
     if (geocodeSeq === seq) renderAnalysis(false);
+    btn.disabled = false;
 }

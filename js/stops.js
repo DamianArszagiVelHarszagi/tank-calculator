@@ -1,3 +1,14 @@
+function showToast(msg) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => {
+        el.classList.add('toast-out');
+        setTimeout(() => el.remove(), 300);
+    }, 2700);
+}
+
 function addStop(lat, lng, name, countryCode) {
     const stop = { lat, lng, countryCode, name };
     stops.push(stop);
@@ -37,6 +48,7 @@ async function searchAddress() {
         addStop(lat, lng, name, countryCode);
         map.setView([lat, lng], Math.max(map.getZoom(), 8));
         input.value = '';
+        geocodeSeq++;
         clearResults();
         clearRoute();
     } catch {
@@ -52,9 +64,26 @@ function renderStops() {
         list.innerHTML = "<li><em>Nog geen stops</em></li>";
         return;
     }
-    list.innerHTML = stops
-        .map((stop, i) => `<li>${i + 1}. ${stop.name} <button onclick="removeStop(${i})">×</button></li>`)
-        .join("");
+    list.innerHTML = stops.map((stop, i) => `
+        <li>
+            <span class="stop-name">${i + 1}. ${stop.name}</span>
+            <span class="stop-actions">
+                <button onclick="moveStop(${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                <button onclick="moveStop(${i}, 1)" ${i === stops.length - 1 ? 'disabled' : ''}>↓</button>
+                <button onclick="removeStop(${i})">×</button>
+            </span>
+        </li>
+    `).join('');
+}
+
+function moveStop(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= stops.length) return;
+    [stops[index], stops[newIndex]] = [stops[newIndex], stops[index]];
+    renderStops();
+    geocodeSeq++;
+    clearResults();
+    clearRoute();
 }
 
 function updateCalcButton() {
@@ -62,7 +91,10 @@ function updateCalcButton() {
 }
 
 function onMapClick(e) {
-    if (lastResult) return;
+    if (lastResult) {
+        showToast('Klik op "Wis alles" om een nieuwe route te beginnen.');
+        return;
+    }
     const { lat, lng } = e.latlng;
     const stop = { lat, lng, countryCode: "DEFAULT", name: "..." };
     stops.push(stop);
@@ -79,6 +111,7 @@ function onMapClick(e) {
         const location = await getLocationInfo(lat, lng);
         stop.countryCode = location.countryCode;
         stop.name = location.name;
+        stop.marker.setPopupContent(location.name);
         renderStops();
     });
 }
@@ -88,16 +121,19 @@ function removeStop(index) {
     stops.splice(index, 1);
     renderStops();
     updateCalcButton();
+    geocodeSeq++;
     clearResults();
     clearRoute();
 }
 
 function clearAll() {
+    if (stops.length && !confirm('Alle stops wissen?')) return;
     stops.forEach(stop => {
         if (stop.marker) map.removeLayer(stop.marker);
     });
     stops = [];
     lastResult = null;
+    geocodeSeq++;
     document.getElementById('save-btn').style.display = 'none';
     document.getElementById('safety-btn').style.display = 'none';
     clearRoute();

@@ -24,11 +24,18 @@ function getPointAtDistanceKm(geometry, targetKm) {
     return { lat: last[1], lng: last[0] };
 }
 
-async function getLocationInfo(lat, lng) {
+async function getLocationInfo(lat, lng, retries = 2) {
     try {
         const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=nl`
         );
+        if (response.status === 429) {
+            if (retries > 0) {
+                await new Promise(r => setTimeout(r, 2500));
+                return getLocationInfo(lat, lng, retries - 1);
+            }
+            return { countryCode: "DEFAULT", name: `${lat.toFixed(3)}, ${lng.toFixed(3)}`, display: "" };
+        }
         const data = await response.json();
         const countryCode = (data.address?.country_code || "XX").toUpperCase();
         const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "";

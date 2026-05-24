@@ -6,8 +6,14 @@ function navigate(page) {
 function saveRoute() {
     if (!lastResult) return;
     const saved = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
-    saved.unshift({ id: Date.now(), date: new Date().toLocaleDateString('nl'), ...lastResult });
-    localStorage.setItem('savedRoutes', JSON.stringify(saved));
+    const newEntry = { id: Date.now(), date: new Date().toLocaleDateString('nl'), ...lastResult };
+    saved.unshift(newEntry);
+    const serialized = JSON.stringify(saved);
+    if (serialized.length > 4 * 1024 * 1024) {
+        alert('Opslag bijna vol. Verwijder eerst een paar opgeslagen routes.');
+        return;
+    }
+    localStorage.setItem('savedRoutes', serialized);
     alert('Route opgeslagen!');
 }
 
