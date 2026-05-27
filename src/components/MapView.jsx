@@ -43,7 +43,7 @@ export default function MapView({ stops, routeGeometry, routeKey, fuelPlan, tank
     return (
         <MapContainer id="map" center={[50.85, 4.35]} zoom={5}>
             <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
                 subdomains="abcd"
                 maxZoom={19}
@@ -56,7 +56,7 @@ export default function MapView({ stops, routeGeometry, routeKey, fuelPlan, tank
                 <GeoJSON
                     key={routeKey}
                     data={routeGeometry}
-                    style={{ color: 'blue', weight: 3 }}
+                    style={{ color: '#4fc3f7', weight: 3 }}
                 />
             )}
 
