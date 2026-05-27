@@ -43,9 +43,11 @@ export default function MapView({ stops, routeGeometry, routeKey, fuelPlan, tank
     return (
         <MapContainer id="map" center={[50.85, 4.35]} zoom={5}>
             <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>'
-                subdomains="abcd"
+                url="https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=JjNyIKmpReSjZ5Nb0qF1"
+                attribution='© <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+                tileSize={512}
+                zoomOffset={-1}
+                minZoom={1}
                 maxZoom={19}
             />
             <MapClickHandler onMapClick={onMapClick} />
