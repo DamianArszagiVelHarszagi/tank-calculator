@@ -41,7 +41,7 @@ function FitBounds({ routeGeometry }) {
 
 export default function MapView({ stops, routeGeometry, routeKey, fuelPlan, tankEmptyPos, safetyAnalysis, onMapClick }) {
     return (
-        <MapContainer id="map" center={[50.85, 4.35]} zoom={5}>
+        <MapContainer id="map" center={[50.85, 4.35]} zoom={5} zoomSnap={0} zoomDelta={0.5} wheelPxPerZoomLevel={60}>
             <TileLayer
                 url="https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=JjNyIKmpReSjZ5Nb0qF1"
                 attribution='© <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
