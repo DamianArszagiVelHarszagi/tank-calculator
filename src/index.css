@@ -15,6 +15,9 @@ body {
 #map {
 	flex: 1;
 }
+#map .leaflet-container {
+	background: #1a2634;
+}
 #sidebar {
 	width: 280px;
 	padding: 12px;
