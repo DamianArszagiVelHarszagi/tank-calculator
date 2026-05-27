@@ -1,11 +1,12 @@
+import { Link } from 'react-router-dom';
 import FuelPlanPanel from './FuelPlanPanel';
 import SafetyPanel from './SafetyPanel';
 
-export default function LeftPanel({ fuelPlan, safetyAnalysis, hasResult, safetyLoading, onSafety, onNavigateSaved }) {
+export default function LeftPanel({ fuelPlan, safetyAnalysis, hasResult, safetyLoading, onSafety }) {
     return (
         <div id="left-col">
             <div id="vertical-nav">
-                <button onClick={onNavigateSaved}>Opgeslagen</button>
+                <Link to="/saved" className="nav-btn">Opgeslagen</Link>
                 {hasResult && (
                     <button id="safety-btn" onClick={onSafety} disabled={safetyLoading}>
                         {safetyLoading ? <><span className="spinner">⟳</span> Analyseren...</> : 'Veiligheid'}

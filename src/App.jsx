@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import MapView from './components/MapView';
 import Toast from './components/Toast';
 import LeftPanel from './components/LeftPanel';
@@ -11,7 +12,7 @@ import { loadSafetyData } from './utils/safety';
 import { saveRouteToStorage } from './utils/storage';
 
 export default function App() {
-    const [page, setPage] = useState('calculator');
+    const navigate = useNavigate();
 
     const [stops, setStops] = useState([]);
     const [routeGeometry, setRouteGeometry] = useState(null);
@@ -403,7 +404,7 @@ export default function App() {
     }
 
     function loadRoute(route) {
-        setPage('calculator');
+        navigate('/');
         geocodeSeqRef.current++;
         setStops([]);
         clearRoute();
@@ -428,7 +429,7 @@ export default function App() {
 
     const hasResult = !!results && !results.error;
 
-    return (
+    const calculator = (
         <div id="layout">
             <MapView
                 stops={stops}
@@ -445,7 +446,6 @@ export default function App() {
                 hasResult={hasResult}
                 safetyLoading={safetyLoading}
                 onSafety={analyzeSafety}
-                onNavigateSaved={() => setPage('saved')}
             />
             <Sidebar
                 stops={stops}
@@ -463,13 +463,14 @@ export default function App() {
                 persons={persons} setPersons={setPersons}
                 isReturn={isReturn} setIsReturn={setIsReturn}
             />
-            {page === 'saved' && (
-                <SavedRoutes
-                    onClose={() => setPage('calculator')}
-                    onLoad={loadRoute}
-                />
-            )}
             <Toast msg={toast} />
         </div>
+    );
+
+    return (
+        <Routes>
+            <Route path="/" element={calculator} />
+            <Route path="/saved" element={<SavedRoutes onLoad={loadRoute} />} />
+        </Routes>
     );
 }

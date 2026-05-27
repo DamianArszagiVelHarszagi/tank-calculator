@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getSavedRoutes, deleteRouteFromStorage } from '../utils/storage';
 
-export default function SavedRoutes({ onClose, onLoad }) {
+export default function SavedRoutes({ onLoad }) {
     const [routes, setRoutes] = useState([]);
 
     useEffect(() => {
@@ -16,7 +17,7 @@ export default function SavedRoutes({ onClose, onLoad }) {
     return (
         <div id="saved-page">
             <div id="saved-header">
-                <button onClick={onClose}>← Terug</button>
+                <Link to="/" className="nav-btn">← Terug</Link>
                 <h2>Opgeslagen routes</h2>
             </div>
             <ul id="saved-list">
