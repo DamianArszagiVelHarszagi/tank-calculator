@@ -457,6 +457,7 @@ export default function App() {
                 onSave={saveRoute}
                 results={results}
                 isCalculating={isCalculating}
+                fuelPlan={fuelPlan}
                 fuelType={fuelType} setFuelType={setFuelType}
                 consumption={consumption} setConsumption={setConsumption}
                 tankCapacity={tankCapacity} setTankCapacity={setTankCapacity}

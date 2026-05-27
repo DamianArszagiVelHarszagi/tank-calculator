@@ -4,21 +4,17 @@ import SafetyPanel from './SafetyPanel';
 
 export default function LeftPanel({ fuelPlan, safetyAnalysis, hasResult, safetyLoading, onSafety }) {
     return (
-        <div id="left-col">
-            <div id="vertical-nav">
-                <Link to="/saved" className="nav-btn">Opgeslagen</Link>
+        <div className="left_col">
+            <div className="vertical_nav">
+                <Link to="/saved" className="nav_btn">Opgeslagen</Link>
                 {hasResult && (
-                    <button id="safety-btn" onClick={onSafety} disabled={safetyLoading}>
+                    <button className="nav_btn nav_btn_safety" onClick={onSafety} disabled={safetyLoading}>
                         {safetyLoading ? <><span className="spinner">⟳</span> Analyseren...</> : 'Veiligheid'}
                     </button>
                 )}
             </div>
-            <div id="left-panel">
-                {fuelPlan.length > 0 && (
-                    <div id="plan-overlay">
-                        <FuelPlanPanel fuelPlan={fuelPlan} />
-                    </div>
-                )}
+            <div className="left_overlays">
+                {fuelPlan.length > 0 && <FuelPlanPanel fuelPlan={fuelPlan} />}
                 {safetyAnalysis && <SafetyPanel safetyAnalysis={safetyAnalysis} />}
             </div>
         </div>

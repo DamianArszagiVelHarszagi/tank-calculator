@@ -4,22 +4,22 @@ import L from 'leaflet';
 
 function makeStopIcon(num, virtual) {
     return L.divIcon({
-        html: `<div class="marker-inner marker-stop ${virtual ? 'marker-stop-virtual' : 'marker-stop-user'}">${num}</div>`,
+        html: `<div class="marker_inner marker_stop ${virtual ? 'marker_stop_virtual' : 'marker_stop_user'}">${num}</div>`,
         iconSize: [28, 28], iconAnchor: [14, 14], className: '',
     });
 }
 
 function makeSafetyIcon(risk) {
-    const cls = { green: 'marker-safety-green', yellow: 'marker-safety-yellow', red: 'marker-safety-red' };
+    const cls = { green: 'marker_safety_green', yellow: 'marker_safety_yellow', red: 'marker_safety_red' };
     return L.divIcon({
-        html: `<div class="marker-inner marker-safety-icon ${cls[risk] || 'marker-safety-yellow'}">!</div>`,
+        html: `<div class="marker_inner marker_safety_icon ${cls[risk] || 'marker_safety_yellow'}">!</div>`,
         iconSize: [20, 20], iconAnchor: [10, 10], className: '',
     });
 }
 
 function makeTankEmptyIcon() {
     return L.divIcon({
-        html: '<div class="marker-inner marker-tank-empty">!</div>',
+        html: '<div class="marker_inner marker_tank_empty">!</div>',
         iconSize: [30, 30], iconAnchor: [15, 15], className: '',
     });
 }

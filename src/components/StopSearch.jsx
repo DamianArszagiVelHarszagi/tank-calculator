@@ -35,20 +35,20 @@ export default function StopSearch({ onAddStop }) {
 
     return (
         <form onSubmit={handleSearch}>
-            <div className="search-row">
+            <div className="search_row">
                 <input
-                    className="search-input"
+                    className="search_input"
                     type="text"
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Stad of adres..."
+                    placeholder="Voeg een stop toe..."
                     disabled={loading}
                 />
-                <button type="submit" id="search-btn" disabled={loading}>
+                <button type="submit" className="search_btn" disabled={loading}>
                     {loading ? '...' : 'Zoek'}
                 </button>
             </div>
-            {error && <small className="search-error">{error}</small>}
+            {error && <small className="search_error">{error}</small>}
         </form>
     );
 }

@@ -15,26 +15,33 @@ export default function SavedRoutes({ onLoad }) {
     }
 
     return (
-        <div id="saved-page">
-            <div id="saved-header">
-                <Link to="/" className="nav-btn">← Terug</Link>
-                <h2>Opgeslagen routes</h2>
+        <div className="saved_page">
+            <div className="saved_header">
+                <Link to="/" className="nav_btn">← Terug</Link>
+                <h2 className="saved_title">Opgeslagen routes</h2>
             </div>
-            <ul id="saved-list">
+            <div className="saved_list">
                 {!routes.length
-                    ? <li><em>Geen opgeslagen routes</em></li>
+                    ? <p className="saved_empty">Geen opgeslagen routes</p>
                     : routes.map(r => (
-                        <li key={r.id}>
-                            <strong>{r.stops[0].name} → {r.stops[r.stops.length - 1].name}</strong><br />
-                            {r.date} · {r.totalKm} km · €{r.totalCost.toFixed(2)} · {r.fuelType}<br />
-                            <small>Stops: {r.stops.map(s => s.name).join(' → ')}</small><br />
-                            <button onClick={() => onLoad(r)}>Laad route</button>
-                            {' '}
-                            <button onClick={() => handleDelete(r.id)}>Verwijder</button>
-                        </li>
+                        <div key={r.id} className="saved_card">
+                            <div className="saved_card_route">
+                                {r.stops[0].name} → {r.stops[r.stops.length - 1].name}
+                            </div>
+                            <div className="saved_card_meta">
+                                {r.date} · {r.totalKm} km · €{r.totalCost.toFixed(2)} · {r.fuelType}
+                            </div>
+                            <div className="saved_card_stops">
+                                {r.stops.map(s => s.name).join(' → ')}
+                            </div>
+                            <div className="saved_card_actions">
+                                <button className="saved_btn_load" onClick={() => onLoad(r)}>Laad route</button>
+                                <button className="saved_btn_delete" onClick={() => handleDelete(r.id)}>Verwijder</button>
+                            </div>
+                        </div>
                     ))
                 }
-            </ul>
+            </div>
         </div>
     );
 }

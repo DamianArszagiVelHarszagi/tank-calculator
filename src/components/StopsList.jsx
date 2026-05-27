@@ -1,17 +1,18 @@
 export default function StopsList({ stops, onMove, onRemove }) {
     if (!stops.length) {
-        return <ul id="stops-list"><li><em>Nog geen stops</em></li></ul>;
+        return <p className="stops_empty">Klik op de kaart of zoek een stad om een stop toe te voegen.</p>;
     }
 
     return (
-        <ul id="stops-list">
+        <ul className="stops_list">
             {stops.map((stop, i) => (
-                <li key={stop.id}>
-                    <span className="stop-name">{i + 1}. {stop.name}</span>
-                    <span className="stop-actions">
-                        <button onClick={() => onMove(i, -1)} disabled={i === 0}>↑</button>
-                        <button onClick={() => onMove(i, 1)} disabled={i === stops.length - 1}>↓</button>
-                        <button onClick={() => onRemove(i)}>×</button>
+                <li key={stop.id} className="stop_item">
+                    <span className="stop_num">{i + 1}</span>
+                    <span className="stop_name">{stop.name}</span>
+                    <span className="stop_actions">
+                        <button className="stop_btn" onClick={() => onMove(i, -1)} disabled={i === 0}>↑</button>
+                        <button className="stop_btn" onClick={() => onMove(i, 1)} disabled={i === stops.length - 1}>↓</button>
+                        <button className="stop_btn stop_btn_remove" onClick={() => onRemove(i)}>×</button>
                     </span>
                 </li>
             ))}
